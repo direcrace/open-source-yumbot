@@ -18,7 +18,8 @@ import {
 import { t } from "../utils/i18n.js";
 import { BOT_INFO } from "../config/constants.js";
 import { normalizeNumber } from "../utils/access.js";
-import { addTodo, listTodos, removeTodo, clearTodos } from "../utils/todos.js";
+import { addTodo, listTodos, removeTodos, clearTodos } from "../utils/todos.js";
+import { parseIndexList } from "../utils/validation.js";
 
 command(
   {
@@ -259,7 +260,7 @@ command(
   {
     pattern: "todo",
     fromMe: false,
-    desc: "Personal to-do list (add/list/del/clear)",
+    desc: "Personal to-do list (add/list/del/clear, multi-delete supported)",
     type: "misc",
   },
   async (message, conn) => {
@@ -269,7 +270,7 @@ command(
       await reply(
         conn,
         message,
-        await tr(`*To-dos*\n\n${BOT_INFO.PREFIX}todo add <text>\n${BOT_INFO.PREFIX}todo list\n${BOT_INFO.PREFIX}todo del <n>\n${BOT_INFO.PREFIX}todo clear`, `*To-dos*\n\n${BOT_INFO.PREFIX}todo add <text>\n${BOT_INFO.PREFIX}todo list\n${BOT_INFO.PREFIX}todo del <n>\n${BOT_INFO.PREFIX}todo clear`)
+        await tr(`*To-dos*\n\n${BOT_INFO.PREFIX}todo add <text>\n${BOT_INFO.PREFIX}todo list\n${BOT_INFO.PREFIX}todo del <n>[,<n>...]\n${BOT_INFO.PREFIX}todo clear`, `*To-dos*\n\n${BOT_INFO.PREFIX}todo add <text>\n${BOT_INFO.PREFIX}todo list\n${BOT_INFO.PREFIX}todo del <n>[,<n>...]\n${BOT_INFO.PREFIX}todo clear`)
       );
       return;
     }
@@ -285,11 +286,24 @@ command(
     }
 
     if (act === "del" || act === "rm") {
-      const n = parseInt(rest[0], 10);
-      if (!n) { await replyFail(conn, message, await tr(`Usage: ${BOT_INFO.PREFIX}todo del <n>`, `Benutzung: ${BOT_INFO.PREFIX}todo del <n>`)); return; }
-      const ok = await removeTodo(owner, n);
-      if (!ok) { await replyFail(conn, message, await tr("No item with that number.", "Kein Eintrag mit dieser Nummer.")); return; }
-      await replyOk(conn, message, await tr(`Removed item #${n}.`, `Eintrag #${n} entfernt.`));
+      const indices = parseIndexList(rest.join(" "));
+      if (!indices.length) {
+        await replyFail(conn, message, await tr(
+          `Usage: ${BOT_INFO.PREFIX}todo del <n>[,<n>...]`,
+          `Benutzung: ${BOT_INFO.PREFIX}todo del <n>[,<n>...]`
+        ));
+        return;
+      }
+      const { removed, missing } = await removeTodos(owner, indices);
+      if (!removed.length) {
+        await replyFail(conn, message, await tr("No item with that number.", "Kein Eintrag mit dieser Nummer."));
+        return;
+      }
+      const label = removed.map((n) => `#${n}`).join(", ");
+      const suffix = missing.length
+        ? await tr(` · not found: ${missing.map((n) => `#${n}`).join(", ")}`, ` · nicht gefunden: ${missing.map((n) => `#${n}`).join(", ")}`)
+        : "";
+      await replyOk(conn, message, await tr(`Removed ${label}.${suffix}`, `${label} entfernt.${suffix}`));
       return;
     }
 

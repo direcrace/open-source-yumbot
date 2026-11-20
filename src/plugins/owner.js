@@ -9,9 +9,8 @@ import {
   addSudo,
   removeSudo,
   isOwnerMessage,
-  normalizeNumber,
 } from "../utils/access.js";
-import { resolveTargetUser } from "../utils/group.js";
+import { resolveCommandTarget } from "../utils/targets.js";
 import { BOT_INFO } from "../config/constants.js";
 
 command(
@@ -91,12 +90,12 @@ command(
       return;
     }
 
-    let target = rest.join(" ").trim() || resolveTargetUser(message) || "";
-    const mentions = message.message?.contextInfo?.mentionedJid || [];
-    if (!target && mentions.length) target = mentions[0];
-
-    const number = normalizeNumber(target);
-    if (!number && (act === "add" || act === "del" || act === "remove" || act === "rm")) {
+    const isMutation = act === "add" || act === "del" || act === "remove" || act === "rm";
+    const resolved = isMutation
+      ? await resolveCommandTarget(message, conn, rest.join(" ").trim(), { fallback: false })
+      : null;
+    const number = resolved?.number || "";
+    if (!number && isMutation) {
       await replyFail(
         conn,
         message,

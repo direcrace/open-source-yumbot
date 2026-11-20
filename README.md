@@ -21,12 +21,17 @@ community features in as self-contained plugins, and how to deploy the bot on
 - **Community ranks** — `src/utils/ranks.js` + `src/plugins/ranks.js`
   - `/rank [@user]` — show a user's rank
   - `/ranks` — list ranked users
-  - `/setrank <@user|number> <rank>` — assign a rank (owner only)
+  - `/setrank <@user|number|reply> <rank>` — assign a rank (owner only). Numbers may include `+`, spaces, dashes or parentheses; mentions and replied-to messages work too.
   - Rank ladder: `user < mod < admin < team < co-owner`. `owner` and `root`
     are reserved (driven by `OWNER_NUMBER` / `CREATOR_NUMBERS`) and cannot be
     assigned. Stored in the `BotKV` table under `community:ranks`.
   - `#setrank` and `#rank` prefer the registered name instead of printing a
-    raw number/JID; `#whoami` resolves the rank live from `community:ranks`.
+    raw number/JID; `#whoami` (alias `#me`) resolves the rank live from
+    `community:ranks`.
+  - Shared target resolution (`src/utils/targets.js`): `@mentions`, replies and
+    LIDs are mapped back to canonical phone numbers before any rank, role,
+    sudo, owner, creator or profile lookup. Unmappable LIDs are rejected
+    instead of being stored as fake phone numbers.
 - **Ban reasons** — `src/utils/globalBan.js`, `src/plugins/moderation.js`,
   `src/multi/miniMonitor.js`
   - `/ban <@user|number> [reason]` · `/unban` · `/banlist`
@@ -253,7 +258,7 @@ Always-on rule engine to protect against WhatsApp ToS violations, in **two scope
 - Owner/sudo setup: `#setsupportgroup` inside the destination group (or `#setsupportgroup <group-jid>` / `status`), `#setticketdelivery group|dm|both|off` (`dm` sends full content only to the reporter; the group gets an ID-only notice), `#setticketroute <category> here|<jid>|clear` for per-category routing and `#setsla <minutes|off>` for unanswered-ticket reminders (default 360 min, 5-min check cycle). `#answer` also works inside a routed category group. Reminders are one-shot per ticket and tracked via `slaNotifiedAt`.
 - Member progression: XP is the existing points counter (100 XP = one member level). Titles: `Newcomer → Member → Regular → Veteran → Legend`. `#level` shows progress and badges; `#mystats` and `#leaderboard` show level/title. Titles are cosmetic and never grant staff permissions.
 - Karma: `#thanks @user` (24 h cooldown per pair, 8 helpful XP for the recipient), `#tophelpers` for the weekly ranking. Earned achievements are shown with `#badges` and in `#level` / `#whois` (`Registered`, `First Ticket`, `Responder`, `Helper`, `Top Helper`, `Thanked`, `Chatter`, `Commander`, `Reporter`, `Veteran`, `Legend`).
-- `#whois` shows your own profile at any time; other members' profiles require Mod+ and are audit-logged. Mod+ results show registered names/status, not bare numbers.
+- `#whois` shows your own profile at any time; other members' profiles require Mod+ and are audit-logged. Reply to someone's message with `#whois` (or mention them / pass a number) to inspect their profile. Mod+ results show registered names/status, not bare numbers.
 - Stats: `#mystats`, `#leaderboard`, `#resetstats`. Counters (messages/commands/reports/tickets) are stored per number in BotKV; no message text is kept for stats.
 - Data rights: `#mydata` sends a private JSON export of your stored data (registration, consent, stats, AI history, tickets, thanks, notes, to-dos, reminders). `#mydata delete` / `#forgetme` deletes those records; `#forgetai` clears only the AI history. Registration/consent proof and append-only audit logs are intentionally retained (use `#unregister` for registration).
 
@@ -266,7 +271,7 @@ Always-on rule engine to protect against WhatsApp ToS violations, in **two scope
 
 ### Ops & system (`src/plugins/ops.js`, `src/plugins/system.js`, `src/plugins/settings.js`)
 
-- `#uptime`, `#version`, `#update` (creator: fast-forward pull with explicit `origin <branch>` + npm install + restart; works on clones without upstream tracking), `#restart`, `#logs`, `#health`, `#config` (runtime prefix/botname/mode/policies), `#permissions`, `#whoami`, `#session`, `#sessions`, `#ratelimit`, `#diagnostics`, `#debug`, `#setcreator`, `#creatormenu`, `#setowner`.
+- `#uptime`, `#version`, `#update` (creator: fast-forward pull with explicit `origin <branch>` + npm install + restart; works on clones without upstream tracking), `#restart`, `#logs`, `#health`, `#config` (runtime prefix/botname/mode/policies), `#permissions`, `#whoami` (`#me`), `#session`, `#sessions`, `#ratelimit`, `#diagnostics`, `#debug`, `#setcreator`, `#creatormenu`, `#setowner`.
 - `#reboot`, `#shutdown`, `#sys` (host snapshot + thresholds), `#dev`, `#minilog`, `#syswatch`, `#corepanic` (force a panic / `pm2 stop`).
 - `#anticall` (global, auto-reject calls with a DM reply) and `#alwaysonline` (global presence).
 
@@ -282,7 +287,7 @@ Always-on rule engine to protect against WhatsApp ToS violations, in **two scope
 
 ### Fun & novelty (`src/plugins/fun.js`, `src/plugins/bloat.js`, `src/plugins/voice.js`)
 
-- `#cal`, `#solve`, `#ebinary`, `#dbinary`, `#mock`, `#flirt`, `#emix`, plus 25 anime reaction images from nekos.best (`#cry`, `#hug`, `#slap`, `#wave`, `#bonk`, …). The old waifu.pics domain no longer resolves.
+- `#cal`, `#solve`, `#ebinary`, `#dbinary`, `#mock`, `#flirt`, `#emix`, plus 25 anime reactions from nekos.best (`#cry`, `#hug`, `#slap`, `#wave`, `#yeet`, `#bonk`, …). The old waifu.pics domain no longer resolves. GIF results are sent as animated GIFs (not static first frames).
 - "BLOAT CORE" (hidden from menu): `#rate`, `#ship`, `#dice`, `#flip`, `#say`, `#screm`, `#how`, `#pp`, `#mood`, `#8ball`, `#rng`, `#boo`, `#sus`, `#vibe`, `#amogus`, `#time`, `#date`, `#bloatmode`.
 - Voice changer (FFmpeg audio filters, reply to audio): `#bass`, `#blown`, `#deep`, `#earrape`, `#fast`, `#fat`, `#nightcore`, `#reverse`, `#robot`, `#slow`, `#smooth`, `#tupai`.
 
@@ -292,7 +297,8 @@ Always-on rule engine to protect against WhatsApp ToS violations, in **two scope
 
 ### Misc
 
-- `#todo` (productivity.js) — per-user to-do lists (`src/utils/todos.js`).
+- `#todo` (productivity.js) — per-user to-do lists (`src/utils/todos.js`). `#todo del 1,2,3` removes several items at once (spaces work too); indices refer to the numbers shown by `#todo list`.
+- `#devtodo` (devtodo.js) — shared staff to-do list (`admin`/`mod`/`owner`) with author and date, a single `devtodo:list` key, 200 items / 500 characters per item, and the same multi-delete syntax (`#devtodo del 1,2,3`). `#todo` stays personal.
 - `#bot on|off|status` (menu.js) — **per-group kill-switch** (admin-gated) via `processGroupMessageGate()` in `groupGuards.js`.
 - `#1` … `#22` (meropic.js) — send bundled MeroPic images (`src/assets/meropic/`).
 - `#bot` menu type, image-based menu header (`src/assets/menu.png` with box-drawn header, uptime/command-count/owner/mode footer).

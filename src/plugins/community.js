@@ -6,6 +6,7 @@ import {
   isRankedAtLeast,
 } from "../utils/access.js";
 import { resolveTargetUser } from "../utils/group.js";
+import { resolveCommandTarget } from "../utils/targets.js";
 import { auditMessage } from "../enterprise/audit.js";
 import { systemLog } from "../utils/logGroup.js";
 import { BOT_INFO } from "../config/constants.js";
@@ -991,10 +992,15 @@ command(
     type: "info",
   },
   async (message, conn) => {
-    const selfNumber = normalizeNumber(message.sender || message.from);
+    const selfResolved = await resolveCommandTarget(message, conn, "", {
+      onlySelf: true,
+    });
+    const selfNumber = selfResolved?.number || normalizeNumber(message.sender || message.from);
     const rawArg = (getCommandArgs(message.body, "whois") || "").trim();
-    const targetRef = resolveTargetUser(message) || rawArg.split(/\s+/)[0] || selfNumber;
-    const targetNumber = normalizeNumber(targetRef) || selfNumber;
+    // A reply carries the other person in contextInfo.participant; resolve it
+    // through the shared resolver so LIDs map back to real phone numbers.
+    const resolved = await resolveCommandTarget(message, conn, rawArg);
+    const targetNumber = resolved?.number || selfNumber;
     const isSelf = targetNumber === selfNumber;
 
     if (!isSelf) {
@@ -1021,7 +1027,9 @@ command(
     const level = levelFromXp(xp);
     const openTickets = (await listTickets({ number: targetNumber, status: "open", limit: 100 })).length;
     const badges = await getBadges(targetNumber);
-    const name = reg?.name || message.pushName || (isSelf ? targetNumber : await tr("Unknown member", "Unbekanntes Mitglied"));
+    const name = reg?.name || (isSelf
+      ? message.pushName || targetNumber
+      : await tr("Unknown member", "Unbekanntes Mitglied"));
 
     const lines = [
       `🪪 *${await tr("Profile", "Profil")}*`,

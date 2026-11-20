@@ -2,7 +2,8 @@
 import { command } from "../plugins.js";
 import { reply, replyOk, replyFail, getCommandArgs, tr } from "../utils/message.js";
 import { isOwnerMessage, normalizeNumber } from "../utils/access.js";
-import { resolveTargetUser, displayId } from "../utils/group.js";
+import { displayId } from "../utils/group.js";
+import { resolveCommandTarget } from "../utils/targets.js";
 import {
   RANKS,
   RANK_LEVELS,
@@ -29,15 +30,21 @@ command(
     type: "team",
   },
   async (message, conn) => {
-    const target = resolveTargetUser(message) || message.sender;
-    const number = normalizeNumber(target);
-    const rank = await getRank(target);
-    const level = await getRankLevel(target);
+    const raw = (getCommandArgs(message.body, "rank") || "").trim();
+    const resolved = await resolveCommandTarget(message, conn, raw);
+    const number = resolved?.number || normalizeNumber(message.sender);
+    if (!number) {
+      await replyFail(conn, message, await tr("Invalid target number.", "Ungültige Ziel-Nummer."));
+      return;
+    }
+    const rank = await getRank(number);
+    const level = await getRankLevel(number);
     const shown = Number.isFinite(level) ? level : RANKS.length + 1;
     const reg = await getRegistration(number);
-    const name = reg?.name || displayId(target);
+    const name = reg?.name || displayId(resolved?.jid || number);
     const stats = await getUserStats(number);
     const xpLevel = levelFromXp(stats?.points || 0);
+    const mentions = resolved?.jid?.includes("@") ? [resolved.jid] : [];
     await reply(
       conn,
       message,
@@ -53,7 +60,7 @@ command(
           `• Staff-Stufe: ${shown}/${RANKS.length}\n` +
           `• Member-Stufe: ${xpLevel} (${memberTier(xpLevel)})`
       ),
-      { mentions: [target] }
+      { mentions }
     );
   }
 );
@@ -111,33 +118,27 @@ command(
     const raw = (getCommandArgs(message.body, "setrank") || "").trim();
     const parts = raw ? raw.split(/\s+/) : [];
     const rankArg = parts.length ? parts[parts.length - 1].toLowerCase() : "";
+    // Everything before the rank is the target. It may be a formatted number
+    // (+49 176 47064538), a mention, or empty when replying/mentioning.
+    const targetRef = parts.length >= 2 ? parts.slice(0, -1).join(" ") : "";
 
-    let target = resolveTargetUser(message);
-    if (!target && parts.length >= 2) {
-      target = normalizeNumber(parts[0]);
-    }
+    const resolved = await resolveCommandTarget(message, conn, targetRef, {
+      fallback: false,
+    });
 
-    if (!target || !rankArg || parts.length < 2) {
+    if (!resolved || !rankArg) {
       await replyFail(
         conn,
         message,
         await tr(
-          `Usage: \`${BOT_INFO.PREFIX}setrank <@user|number> <rank>\`\nRanks: ${ASSIGNABLE_RANKS.join(", ")}`,
-          `Benutzung: \`${BOT_INFO.PREFIX}setrank <@user|Nummer> <Rang>\`\nRänge: ${ASSIGNABLE_RANKS.join(", ")}`
+          `Usage: \`${BOT_INFO.PREFIX}setrank <@user|number|reply> <rank>\`\nRanks: ${ASSIGNABLE_RANKS.join(", ")}`,
+          `Benutzung: \`${BOT_INFO.PREFIX}setrank <@user|Nummer|Antwort> <Rang>\`\nRänge: ${ASSIGNABLE_RANKS.join(", ")}`
         )
       );
       return;
     }
 
-    const number = normalizeNumber(target);
-    if (!number) {
-      await replyFail(
-        conn,
-        message,
-        await tr("Invalid target number.", "Ungültige Ziel-Nummer.")
-      );
-      return;
-    }
+    const number = resolved.number;
 
     if (!ASSIGNABLE_RANKS.includes(rankArg)) {
       await replyFail(
@@ -154,9 +155,9 @@ command(
     await setRank(number, rankArg);
 
     const reg = await getRegistration(number);
-    const shownName = reg?.name || displayId(target || number);
-    const mention = String(target || "").includes("@")
-      ? String(target)
+    const shownName = reg?.name || displayId(resolved.jid || number);
+    const mention = resolved.jid.includes("@")
+      ? resolved.jid
       : `${number}@s.whatsapp.net`;
     await replyOk(
       conn,

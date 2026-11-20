@@ -45,6 +45,7 @@ const AUDIT_ACTIONS = new Set([
   "wipekey",
   "corepanic",
   "syswatch",
+  "devtodo",
 ]);
 
 const SUB_BLOCKED_COMMANDS = new Set([
