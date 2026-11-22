@@ -10,8 +10,10 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function buildPattern(prefix, name) {
-  return new RegExp(`^(${escapeRegExp(prefix)})( ?${escapeRegExp(name)}(?=\\b|$))(.*)`, "is");
+function buildPattern(prefix, name, aliases = []) {
+  const names = [name, ...aliases.filter((alias) => alias && alias !== name)]
+    .map((value) => escapeRegExp(value));
+  return new RegExp(`^(${escapeRegExp(prefix)})( ?(${names.join("|")})(?=\\b|$))(.*)`, "is");
 }
 
 class CommandBuilder {
@@ -19,6 +21,7 @@ class CommandBuilder {
     this.config = {
       pattern: null,
       patternName: null,
+      aliases: [],
       fromMe: false,
       desc: "",
       type: "misc",
@@ -30,9 +33,10 @@ class CommandBuilder {
     };
   }
 
-  setPattern(pattern) {
+  setPattern(pattern, aliases = []) {
     this.config.patternName = pattern;
-    this.config.pattern = buildPattern(BOT_INFO.PREFIX, pattern);
+    this.config.aliases = [...aliases];
+    this.config.pattern = buildPattern(BOT_INFO.PREFIX, pattern, aliases);
     return this;
   }
 
@@ -77,10 +81,11 @@ class CommandBuilder {
     }
     commands.push(this.config);
     if (this.config.patternName) {
-      const key = this.config.patternName.toLowerCase();
-
-      if (!commandIndex.has(key)) {
-        commandIndex.set(key, this.config);
+      for (const name of [this.config.patternName, ...this.config.aliases]) {
+        const key = String(name).toLowerCase();
+        if (!commandIndex.has(key)) {
+          commandIndex.set(key, this.config);
+        }
       }
     }
     return this.config;
@@ -91,7 +96,7 @@ export const command = (commandInfo, func) => {
   const builder = new CommandBuilder();
 
   if (commandInfo.pattern) {
-    builder.setPattern(commandInfo.pattern);
+    builder.setPattern(commandInfo.pattern, commandInfo.aliases || []);
   }
   if (commandInfo.desc) {
     builder.setDescription(commandInfo.desc);
@@ -155,7 +160,7 @@ export function getMenuCommands() {
 export function rebuildCommandPatterns() {
   for (const cmd of commands) {
     if (cmd.patternName) {
-      cmd.pattern = buildPattern(BOT_INFO.PREFIX, cmd.patternName);
+      cmd.pattern = buildPattern(BOT_INFO.PREFIX, cmd.patternName, cmd.aliases || []);
     }
   }
   return commands.length;

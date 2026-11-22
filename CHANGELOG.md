@@ -15,6 +15,16 @@ This changelog documents **everything that is different in `onyx-core`** compare
 
 ---
 
+## Unreleased — A32 patches
+
+- `#whoami` now has the alias `#me`. The command registry supports generic aliases; aliases share the command's access rules and do not add extra menu entries.
+- Reactions (`#yeet`, `#hug`, `#cry`, …) now send nekos.best GIFs as animated GIFs via Baileys `video`/`gif` instead of static first frames.
+- Shared target resolution (`src/utils/targets.js`) for `#setrank`, `#rank`, `#role set`, `#sudo`, `#setowner`, `#setcreator` and `#whois`: accepts `+`-prefixed and spaced phone numbers, mentions and replies, and maps `@lid` identities to real phone numbers before storing anything. Unmappable LIDs are rejected rather than stored as bogus numbers.
+- `#whois` now shows the profile of the person you reply to. Staff lookups no longer fall back to the sender's display name.
+- `#todo del 1,2,3` (and `#devtodo del 1,2,3`) remove multiple items at once, deduplicated and safe against shifting indices.
+- New `#devtodo`: shared staff to-do list (`admin`/`mod`/`owner`) with author + date, 200-item and 500-character caps, serialized writes and audit logging. Personal `#todo` is unchanged.
+- Tests: 16 new mocked cases covering aliases, target resolution (including LID mapping), multi-delete and shared-list storage.
+
 ## Unreleased — community bot release
 
 - Modular free image resolver: moved Pinterest/Openverse/Commons retrieval out of `src/plugins/search.js` into `src/modules/imageResolver/` with pluggable providers, streamed size caps, magic-byte MIME validation, SSRF/redirect host checks and hard timeouts. `#img` now also accepts direct and Pinterest image URLs. Pinterest CAPTCHA/login walls fail gracefully (`SOURCE_BLOCKED`/`AUTH_REQUIRED`) with no bypass, no retries against the blocked source and no new dependencies or costs. Openverse/Commons `401`/`403`/`429` now map to the same clear error codes, and blocked search providers get a 10-minute cooldown (`PROVIDER_BLOCK_COOLDOWN_MS`) so hosting-IP 403s fall straight through to the next free source. Full docs in `IMAGE-RESOLVER.md`; mocked test suite covers all error codes and the WhatsApp send path.

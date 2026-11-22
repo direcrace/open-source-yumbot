@@ -26,9 +26,8 @@ import { isLogGroupAsync } from "../utils/logGroup.js";
 import {
   isOwnerMessage,
   isPrivileged,
-  normalizeNumber,
 } from "../utils/access.js";
-import { resolveTargetUser, displayId } from "../utils/group.js";
+import { resolveCommandTarget } from "../utils/targets.js";
 import { BOT_INFO } from "../config/constants.js";
 import fs from "fs/promises";
 
@@ -221,7 +220,8 @@ command(
       return;
     }
 
-    const [action, a2, a3] = raw.split(/\s+/);
+    const tokens = raw.split(/\s+/);
+    const [action] = tokens;
     if (action === "me") {
       const r = await resolveRole(message, conn);
       await reply(conn, message, await tr(`Your role: *${r}*`, `Deine Rolle: *${r}*`));
@@ -229,13 +229,12 @@ command(
     }
 
     if (action === "set") {
-      let target = a2;
-      let role = a3;
-      if (!role) {
-        role = a2;
-        target = resolveTargetUser(message);
-      }
-      const n = normalizeNumber(target);
+      const role = tokens.length > 1 ? tokens[tokens.length - 1].toLowerCase() : "";
+      const targetRef = tokens.length > 2 ? tokens.slice(1, -1).join(" ") : "";
+      const resolved = await resolveCommandTarget(message, conn, targetRef, {
+        fallback: false,
+      });
+      const n = resolved?.number || "";
       if (!n || !role) {
         await replyFail(
           conn,

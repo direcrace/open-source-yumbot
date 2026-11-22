@@ -295,8 +295,20 @@ const RANK_COOWNER_DENY = new Set([
   "corepanic",
 ]);
 
+// Staff utilities may be used regardless of global bot mode. Access is still
+// enforced inside the command itself via RBAC.
+const STAFF_COMMANDS = new Set(["devtodo"]);
+
 export async function checkCommandAccess(message, command, conn) {
   const name = (command.patternName || "").toLowerCase();
+
+  if (STAFF_COMMANDS.has(name)) {
+    const { can } = await import("../enterprise/rbac.js");
+    return (await can(message, conn, "devtodo"))
+      ? { allowed: true }
+      : { allowed: false, silent: false, reason: "STAFF_ONLY" };
+  }
+
   const privileged = await isPrivileged(message, conn);
   const owner = isOwnerMessage(message, conn);
 

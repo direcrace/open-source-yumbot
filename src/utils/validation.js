@@ -112,3 +112,15 @@ export function validateNumber(input, options = {}) {
   return result;
 }
 
+/** Parse "1,2,3" or "1 2 3" into a sorted list of unique 1-based indices. */
+export function parseIndexList(input) {
+  const tokens = String(input ?? "").trim().split(/[\s,;]+/).filter(Boolean);
+  const indices = new Set();
+  for (const token of tokens) {
+    if (!/^\d+$/.test(token)) continue;
+    const value = Number(token);
+    if (Number.isSafeInteger(value) && value > 0) indices.add(value);
+  }
+  return [...indices].sort((a, b) => a - b);
+}
+

@@ -11,6 +11,7 @@ import { ROLES, listRoles } from "../enterprise/rbac.js";
 import { getFlags } from "../enterprise/flags.js";
 import { getMode, listSudo } from "../utils/access.js";
 import { resolveEffectiveRank, RANK_LABELS } from "../utils/ranks.js";
+import { resolveCommandTarget } from "../utils/targets.js";
 import { getUserStats, levelFromXp, memberTier } from "../utils/communityStats.js";
 import { gitPull, npmInstall } from "../utils/gitUpdate.js";
 import { restartService } from "../system/platform.js";
@@ -353,7 +354,7 @@ command(
 );
 
 command(
-  { pattern: "whoami", fromMe: false, desc: "Show who you are to the bot", type: "info" },
+  { pattern: "whoami", aliases: ["me"], fromMe: false, desc: "Show who you are to the bot (alias: #me)", type: "info" },
   async (message, conn) => {
     const role = await (await import("../enterprise/rbac.js")).resolveRole(message, conn);
     const isGw = isSubConnection(conn) ? " (Onyx Mini)" : "";
@@ -459,11 +460,6 @@ async function realLang() {
   } catch { return "en"; }
 }
 
-function resolveTargetUser(message) {
-  const mentions = message?.message?.contextInfo?.mentionedJid || [];
-  return mentions[0] || "";
-}
-
 command(
   { pattern: "setcreator", fromMe: false, desc: "Manage creator (host) numbers — add|del|list", type: "owner" },
   async (message, conn) => {
@@ -481,11 +477,12 @@ command(
       return;
     }
 
-    let target = rest.join(" ").trim() || resolveTargetUser(message) || "";
-    const mentions = message.message?.contextInfo?.mentionedJid || [];
-    if (!target && mentions.length) target = mentions[0];
-    const number = normalizeNumber(target);
-    if (!number) {
+    const isMutation = act === "add" || act === "del" || act === "remove" || act === "rm";
+    const resolved = isMutation
+      ? await resolveCommandTarget(message, conn, rest.join(" ").trim(), { fallback: false })
+      : null;
+    const number = resolved?.number || "";
+    if (!number && isMutation) {
       await replyFail(conn, message, await tr(`Usage: \`#setcreator add <number|@user>\` / \`#setcreator del <number|@user>\``, `Benutzung: \`#setcreator add <nummer|@user>\` / \`#setcreator del <nummer|@user>\``));
       return;
     }
@@ -550,11 +547,12 @@ command(
       return;
     }
 
-    let target = rest.join(" ").trim() || resolveTargetUser(message) || "";
-    const mentions = message.message?.contextInfo?.mentionedJid || [];
-    if (!target && mentions.length) target = mentions[0];
-    const number = normalizeNumber(target);
-    if (!number) {
+    const isMutation = act === "add" || act === "del" || act === "remove" || act === "rm";
+    const resolved = isMutation
+      ? await resolveCommandTarget(message, conn, rest.join(" ").trim(), { fallback: false })
+      : null;
+    const number = resolved?.number || "";
+    if (!number && isMutation) {
       await replyFail(conn, message, await tr(`Usage: \`#setowner add <number|@user>\` / \`#setowner del <number|@user>\``, `Benutzung: \`#setowner add <nummer|@user>\` / \`#setowner del <nummer|@user>\``));
       return;
     }

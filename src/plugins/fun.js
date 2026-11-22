@@ -192,7 +192,12 @@ for (const reaction of REACTIONS) {
           );
           const url = data?.results?.[0]?.url;
           if (!url) throw new Error("no result from nekos.best");
-          await conn.sendMessage(message.from, { image: { url }, caption: `*${reaction}*` },
+          // nekos.best serves GIFs. Baileys must send them as video+gif,
+          // otherwise WhatsApp displays only the first frame (static image).
+          const payload = /\.gif(?:\?|$)/i.test(url)
+            ? { video: { url }, gif: true, caption: `*${reaction}*` }
+            : { image: { url }, caption: `*${reaction}*` };
+          await conn.sendMessage(message.from, payload,
             { quoted: { key: message.key, message: message.message } });
         } catch (err) {
           await replyFail(conn, message, await tr(
