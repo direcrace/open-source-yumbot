@@ -4,6 +4,7 @@ import { findCommand } from "../plugins.js";
 import { validateCommand } from "../utils/validation.js";
 import { checkCommandAccess, isPrivileged, isRankedAtLeast, normalizeNumber } from "../utils/access.js";
 import { sendError, ackCommand, tr } from "../utils/message.js";
+import { prepareResponsePacing } from "../utils/responsePacing.js";
 import { validateGroupPermissions } from "../utils/group.js";
 import { groupCache } from "../utils/cache.js";
 import { getGroupSettings } from "../utils/groupSettings.js";
@@ -271,11 +272,12 @@ export async function messageHandler(params) {
       }
     }
 
-    await ackCommand(conn, message);
+    const pacing = await prepareResponsePacing({ message, name, privileged });
+    if (!pacing.replaceAck) await ackCommand(conn, message);
     recordCommand(name || "unknown");
     recordUserActivity(message.sender || message.from, { kind: "command", command: name, chat: message.from }).catch(() => {});
 
-    await command.function(message, conn);
+    await pacing.run(conn, () => command.function(message, conn));
 
     if (AUDIT_ACTIONS.has(name)) {
       writeAudit({

@@ -8,6 +8,8 @@ import { groupCache } from "../utils/cache.js";
 import { getGroupSettings, isBanned } from "../utils/groupSettings.js";
 import { normalizeNumber } from "../utils/access.js";
 import { auditMessage } from "../enterprise/audit.js";
+import { BOT_INFO } from "../config/constants.js";
+import { isResponsePacingEligible } from "../utils/responsePacing.js";
 
 function isSenderBot(message, conn) {
   const sender = message.sender || message.participant || "";
@@ -108,12 +110,28 @@ export async function processGroupGuards({ message, conn }, onBlock) {
       try { await conn.sendPresenceUpdate("available", message.from); } catch {  }
     }
     if (settings.autotyping) {
-      try {
-        await conn.sendPresenceUpdate("composing", message.from);
-        setTimeout(async () => {
-          try { await conn.sendPresenceUpdate("paused", message.from); } catch {  }
-        }, 2000);
-      } catch {  }
+      let defer = false;
+      const body = String(message.body || "");
+      if (body.startsWith(BOT_INFO.PREFIX)) {
+        const name = body
+          .slice(BOT_INFO.PREFIX.length)
+          .trim()
+          .split(/\s+/)[0]
+          ?.toLowerCase();
+        try {
+          defer = await isResponsePacingEligible({ message, name, privileged });
+        } catch {
+          defer = false;
+        }
+      }
+      if (!defer) {
+        try {
+          await conn.sendPresenceUpdate("composing", message.from);
+          setTimeout(async () => {
+            try { await conn.sendPresenceUpdate("paused", message.from); } catch {  }
+          }, 2000);
+        } catch {  }
+      }
     }
   }
 

@@ -1,6 +1,7 @@
 
 
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, UX } from "../config/constants.js";
+import { isPacingActive } from "./responsePacing.js";
 
 export async function tr(en, de) {
   const { getLang } = await import("./i18n.js");
@@ -59,6 +60,8 @@ export async function ackCommand(conn, message, emoji = UX.ACK_REACT) {
 }
 
 export async function withTyping(conn, jid, fn, { timeoutMs = 15_000 } = {}) {
+  if (isPacingActive()) return await fn();
+
   let cleared = false;
   const clear = async () => {
     if (cleared) return;
