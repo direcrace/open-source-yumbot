@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** 24.11.2026
+**Last updated:** 28.11.2026
 
 > **Using `#pair` (Onyx Mini)?** Read Section 3.3 before linking your number — it explains the monitoring, logging, and termination that come with a linked session.
 > **Using a self-hosted "main" instance?** Read Section 1.1 — the operator of the instance you use is the controller responsible for it.
@@ -36,6 +36,7 @@ Whoever runs a main instance controls what it stores, logs, and retains, includi
 * **Moderation** — `#antilink`, `#antispam`, `#antibot`, `#warn`, `#mute`, `#kick`, `#ban`, welcome/goodbye and other group tools.
 * **Group access** — `#pr` / `#dm` (self-promotion/self-demotion with group-admin approval), `#apr` / `#adm` (sudo promotion/demotion), `#setrequestreceive` / `#request` / `#rq` (bot-join requests) and `#setupaccept` (team setup acceptance).
 * **AI chat** (`#chat`, `#aiprompt`) via a connected backend, plus media processing and search/utilities.
+* **Text-to-speech** (`#tts`) turns short text into an audio clip via Google Translate TTS; the submitted text is sent to Google.
 * **Personal utilities** — notes, to-dos, reminders, polls.
 * **Onyx Mini** (`#pair`) — optional linking of your own WhatsApp number as a sub-session.
 
@@ -48,7 +49,7 @@ Whoever runs a main instance controls what it stores, logs, and retains, includi
 Depending on the features you use:
 
 * Your WhatsApp ID / number, as needed to attribute a command or respond to you.
-* Command text and, where required to execute a command, the message content (e.g. text to translate, a caption to convert, a replied-to message).
+* Command text and, where required to execute a command, the message content (e.g. text to translate or speak, a caption to convert, a replied-to message).
 * Media you deliberately send to media-processing commands — processed only as long as needed to return the result, **never stored for logging**.
 * Group metadata for groups the Bot is in: group name, ID, member/admin lists, and moderation settings the Bot manages.
 * Pending group-access actions and requests: your normalized number, group ID, the selected action, a timestamp and a 24-hour expiry. An approved request also creates a one-time setup token with the same expiry. Only the invite code is stored; the Bot reconstructs `https://chat.whatsapp.com/<code>` and posts it in the configured receiver group with the request and again after approval so a team member can join. The link is not sent to the requester and is never written to audit logs.
@@ -146,6 +147,7 @@ Commands may send only the data needed for the specific request to external serv
 * AI inference backend (LM Studio) for `#chat` / `#aiprompt`
 * GitHub (public profile lookups)
 * IMDb-linked sources (`#movie`), Pinterest (`#img`), lyrics providers, translation services
+* Google Translate TTS (`#tts`) — the exact text you submit is sent to Google to generate the audio clip; no account or API key is used.
 * Background-removal API (`#removebg`)
 * YouTube, TikTok, Instagram, Facebook (media commands — best-effort, subject to their terms)
 * Media/file hosting used by `#toururl`

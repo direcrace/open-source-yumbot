@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last updated:** 24.11.2026
+**Last updated:** 28.11.2026
 
 These Terms of Service ("Terms") govern your use of this WhatsApp bot ("the Bot," "we," "us"), including its community features, group tools, personal utilities, and the optional linked-account feature ("Onyx Mini," accessed via `#pair`).
 
@@ -17,7 +17,7 @@ The Bot provides automated WhatsApp functionality, including:
 * **Group moderation** — `#antilink`, `#antispam`, `#antibot`, `#warn`, `#mute`, `#kick`, `#ban`, welcome/goodbye and other group management tools.
 * **Group access** — `#pr` / `#dm` (Mod+ requests self-promotion/demotion, decided by a group admin), `#apr` / `#adm` (sudo promotion/demotion), `#setrequestreceive` / `#request` / `#rq` (bot-join requests decided by Team+) and `#setupaccept` (one-time team setup token in the target group). The Bot must be a group admin for role changes.
 * **AI chat** (`#chat`, `#aiclear`, `#aiprompt`) via a connected AI backend.
-* **Media processing** (`#sticker`, `#toimg`, `#tomp3`, `#removebg`, `#tiktok`, `#ig`, `#fb`, `#yt`, `#vv`) and search/utilities (`#anime`, `#github`, `#movie`, `#lyrics`, `#translate`, `#img`).
+* **Media processing** (`#sticker`, `#toimg`, `#tomp3`, `#removebg`, `#tiktok`, `#ig`, `#fb`, `#yt`, `#vv`) and search/utilities (`#anime`, `#github`, `#movie`, `#lyrics`, `#translate`, `#tts`, `#img`).
 * **Personal utilities** — notes, to-dos, reminders, polls.
 * **Onyx Mini** (`#pair`) — optional linking of your own WhatsApp number as a bot-controlled sub-session.
 
@@ -102,7 +102,7 @@ To enforce these Terms and to keep audit proof for moderation actions, the Bot p
 
 ## 8. Third-Party Services
 
-Commands may call third-party APIs and platforms (AI backend, GitHub, IMDb-linked sources, Pinterest, lyrics and translation providers, background-removal API, YouTube, TikTok, Instagram, Facebook, file hosting). We do not control them, do not guarantee their availability or accuracy, and are not responsible for their content or policy changes. Their own terms apply to data once it reaches them.
+Commands may call third-party APIs and platforms (AI backend, GitHub, IMDb-linked sources, Pinterest, lyrics and translation providers, Google Translate TTS, background-removal API, YouTube, TikTok, Instagram, Facebook, file hosting). We do not control them, do not guarantee their availability or accuracy, and are not responsible for their content or policy changes. Their own terms apply to data once it reaches them.
 
 ---
 

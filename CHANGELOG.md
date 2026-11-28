@@ -39,6 +39,7 @@ This changelog documents **everything that is different in `onyx-core`** compare
 - Ticket SLA: `#setsla <minutes|off>` (default 360 min via `TICKET_SLA_MINUTES`, 5-minute checks via `TICKET_SLA_INTERVAL_MS`) sends one-shot reminders to the responsible support/category group and persists `slaNotifiedAt` for restart-safe deduplication.
 - Karma/badges: `#thanks @user` (24 h cooldown, 8 helpful XP), `#tophelpers`, `#badges`; earned badges appear in `#level`, `#mystats` and `#whois`.
 - Self-service data rights: `#mydata` exports stored data as a private JSON document, `#mydata delete` / `#forgetme` delete it, `#forgetai` clears AI history only. Registration/consent proof and append-only audit logs stay intact by design.
+- `#tts [lang] <text>` reintroduced for all registered users via the free Google Translate TTS endpoint using Node `fetch` — no API key, no npm package, no new dependency. Default language `de`, 180-character cap, MP3 audio reply, disableable through the existing `tts` command flag. Third-party text disclosure added to ToS/Privacy; document hashes change, so consent must be renewed with `#register <Name> accept`.
 
 ---
 

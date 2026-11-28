@@ -288,6 +288,7 @@ Always-on rule engine to protect against WhatsApp ToS violations, in **two scope
 ### Search (`src/plugins/search.js`)
 
 - `#movie` (OMDB), `#anime` (Jikan → AniList fallback), `#lyrics`, `#github`, `#translate` (translate-google-api), `#qr` (qrcode), `#img` (Pinterest → Openverse → Wikimedia Commons fallback chain with source/license caption; also accepts a direct/pinterest image URL), `#weather` (Open-Meteo), `#wiki`, `#reddit`, `#npm`, `#define`, `#news` (NEWS_API_KEY), `#search` (DuckDuckGo).
+- `#tts [lang] <text>` — free text-to-speech via Google Translate TTS (Node `fetch`, no API key, no npm package); default language `de`, 180-character cap, MP3 audio reply. The submitted text is passed to Google — see Privacy Policy.
 - `#img` uses the modular, free [`src/modules/imageResolver/`](src/modules/imageResolver/index.js): SSRF/redirect validation, streamed size caps, magic-byte MIME checks, graceful Pinterest CAPTCHA/auth failures and pluggable providers. Details, error codes and config: [`IMAGE-RESOLVER.md`](IMAGE-RESOLVER.md).
 
 ### Fun & novelty (`src/plugins/fun.js`, `src/plugins/bloat.js`, `src/plugins/voice.js`)
@@ -344,7 +345,7 @@ New default settings: `antilinkAction`, `antispamAction` (now `delete|warn|stric
 - `tryChatbotReply()` exported from `handler.js`; non-command messages go `game turn → chatbot reply`.
 - Anti-delete listener in `connection.js` (recover deleted messages when `antidelete` on), anti-call auto-reject, per-group/global always-online, chat-index harvesting (`chats.upsert` / `contacts.upsert` / group sync for the Remote picker).
 - Runtime prefix / bot name — `src/config/constants.js` now exposes `getPrefix()`, `getBotName()`, `loadRuntimeConfig()`, `saveRuntimePrefix()`, `saveRuntimeBotName()`; `BOT_INFO.PREFIX`/`NAME` became getters; `rebuildCommandPatterns()` in `src/plugins.js` recompiles regexes after a prefix change.
-- `#tts` (Google TTS) **removed** (replaced by `#translate` + TTS inside voice plugin); `youtubei.js` downgraded `^18` → `^17.2.0` and `ytdl.js` **rewritten** to use the library's built-in `yt.download()` (manual chunked client-fetch + ffmpeg merge removed).
+- `#tts` (Google TTS via `google-tts-api`) **removed** in this fork; reintroduced in Unreleased through the direct free Google endpoint (Node `fetch`, no package, no key). `youtubei.js` downgraded `^18` → `^17.2.0` and `ytdl.js` **rewritten** to use the library's built-in `yt.download()` (manual chunked client-fetch + ffmpeg merge removed).
 - `i18n.js`: `id`/`hi` dictionaries removed, complete German (`de`) dictionary added; new `tr(en, de)` helper everywhere; `sendError()` translates i18n keys. BotKV lang whitelist updated to `["en","de"]`.
 - `validation.js` returns error keys instead of resolved messages (translation moved to callers).
 - All user-facing strings across plugins wrapped in `tr()` (bilingual EN/DE).

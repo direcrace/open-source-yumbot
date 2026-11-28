@@ -77,6 +77,7 @@ const PRIVACY_SHORT_EN = [
   "• Self-service rights: `#mydata` exports your stored data (DM only); `#mydata delete` / `#forgetme` delete it, `#forgetai` clears AI history. Registration/consent proof and append-only audit logs are retained.",
   "• Legal basis: service + legitimate interest in safety and consent proof.",
   "• Third-party APIs only receive what your request needs.",
+  "• `#tts` sends your text to Google Translate TTS to create an audio clip; only submit text you are allowed to share.",
   "• GDPR rights (access/correction/deletion) via the contact below; verify via your registered number.",
   "Full text: `#privacy full`.",
 ].join("\n");
@@ -94,6 +95,7 @@ const PRIVACY_SHORT_DE = [
   "• Selbstbedienung: `#mydata` exportiert deine Daten (nur Privatchat), `#mydata delete` / `#forgetme` löschen sie, `#forgetai` löscht nur den KI-Verlauf. Registrierung/Zustimmungsnachweis und unveränderbare Audit-Logs bleiben erhalten.",
   "• Rechtsgrundlage: Leistungserbringung + berechtigtes Interesse an Sicherheit und Zustimmungsnachweis.",
   "• Drittanbieter-APIs erhalten nur, was deine Anfrage braucht.",
+  "• `#tts` schickt deinen Text an Google Translate TTS, um eine Audiodatei zu erzeugen; gib nur Texte ein, die du teilen darfst.",
   "• DSGVO-Rechte (Auskunft/Berichtigung/Löschung) über den Kontakt unten; Verifikation über deine registrierte Nummer.",
   "Volltext: `#privacy full`.",
 ].join("\n");
