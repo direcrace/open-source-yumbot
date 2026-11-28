@@ -1,7 +1,7 @@
 import { command, getCommands } from "../plugins.js";
 import { reply, replyOk, replyFail, getCommandArgs, tr } from "../utils/message.js";
 import { BOT_INFO } from "../config/constants.js";
-import { getMode, getSenderRankLevel } from "../utils/access.js";
+import { getMode, getSenderRankLevel, normalizeNumber } from "../utils/access.js";
 import {
   RANKS,
   RANK_LEVELS,
